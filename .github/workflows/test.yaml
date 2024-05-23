@@ -1,0 +1,41 @@
+name: 32-bit test
+
+on:
+  push:
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        size: ['64b', '32b']
+        golang: ['1.21', '1.22']
+        exclude:
+          - os: windows-latest
+            size: '32b'
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+    - name: Matrix is ${{matrix.os}} / ${{matrix.size}} - Go is ${{matrix.golang}}
+      run: date
+
+    - name: Setup Alpine Linux ${{matrix.size}}
+      uses: jirutka/setup-alpine@v1
+      if: ${{ matrix.size == 'x86' }}
+      with:
+        arch: x86
+        packages: >
+          make 
+          git 
+          gcc 
+          musl-dev
+
+    - name: getconf x86
+      if: ${{ matrix.size == 'x86' }}
+      run: getconf LONG_BIT
+      shell: alpine.sh {0}
+
+    - name: getconf x64
+      run: getconf LONG_BIT
+
