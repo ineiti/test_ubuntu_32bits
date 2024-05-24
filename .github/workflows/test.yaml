@@ -9,7 +9,7 @@ jobs:
       matrix:
         os: [windows-latest, ubuntu-latest]
         size: ['64b', '32b']
-        golang: ['1.21', '1.22']
+        golang: ['1.21.10', '1.22.3']
         exclude:
           - os: windows-latest
             size: '32b'
@@ -22,7 +22,7 @@ jobs:
 
     - name: Setup Alpine Linux ${{matrix.size}}
       uses: jirutka/setup-alpine@v1
-      if: ${{ matrix.size == 'x86' }}
+      if: ${{ matrix.size == '32b' }}
       with:
         arch: x86
         packages: >
@@ -30,10 +30,17 @@ jobs:
           git 
           gcc 
           musl-dev
+          wget
+          tar
 
     - name: getconf x86
-      if: ${{ matrix.size == 'x86' }}
-      run: getconf LONG_BIT
+      if: ${{ matrix.size == '32b' }}
+      run: |
+        wget -nv https://go.dev/dl/go${{matrix.golang}}.linux-386.tar.gz
+        tar xf go*
+        export PATH=$PATH:$(pwd)/go/bin
+        go version
+        getconf LONG_BIT
       shell: alpine.sh {0}
 
     - name: getconf x64
